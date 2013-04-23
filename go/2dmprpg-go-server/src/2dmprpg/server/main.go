@@ -5,6 +5,7 @@ import (
   "net"
   "bufio"
   "sync"
+  "regexp"
 )
 
 func handleConnection(conn net.Conn, wg *sync.WaitGroup) {
@@ -14,6 +15,17 @@ func handleConnection(conn net.Conn, wg *sync.WaitGroup) {
     log.Println("Failed to read data:", err)
   } else {
     log.Println("Received data:", str)
+    re, err := regexp.Compile("^\\s*(\\w+)\\s*(\\d+)(\\w+)\\s*$")
+    if err != nil {
+      log.Println("Error occured while compiling regular expression:", err)
+    } else {
+      matches := re.FindStringSubmatch(str)
+      log.Println("Num of matches:", len(matches))
+      for i := 0; i < len(matches); i++ {
+        log.Println(i, ") ", matches[i])
+      }
+      log.Println(matches)
+    }
   }
   err = conn.Close()
   if err != nil {

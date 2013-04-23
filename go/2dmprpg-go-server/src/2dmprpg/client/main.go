@@ -15,7 +15,7 @@ func main() {
   }
   if conn != nil {
     log.Println("Connected, sending data...")
-    _, err := io.WriteString(conn, "Hello, World!!!\n")
+    _, err := io.WriteString(conn, "SESS  2MP\n")
     if err != nil {
       log.Println("Failed to send data:", err)
     }
