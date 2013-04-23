@@ -24,7 +24,7 @@ func handleConnection(conn net.Conn, wg *sync.WaitGroup) {
 }
 
 func main() {
-  log.Println("Listening 127.0.0.1:8000 for connectíons...")
+  log.Println("Listening 127.0.0.1:8000 for connections...")
   ln, err := net.Listen("tcp", "127.0.0.1:8000")
   if err != nil {
     log.Println("Error occured while listening for connections:", err)
