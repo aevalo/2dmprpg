@@ -1,34 +1,47 @@
 package main
 
 import (
-  "log"
+  "fmt"
   "net"
-  "io"
   "2dmprpg/protocol"
 )
 
 func main() {
-  log.Println("Opening a connection to 127.0.0.1:8000...")
+  fmt.Println("Opening a connection to 127.0.0.1:8000...")
   conn, err := net.Dial("tcp", "127.0.0.1:8000")
   if err != nil {
-    log.Println("Error occured while connecting!:", err)
+    fmt.Println("Error occured while connecting!:", err)
     return
   }
   if conn != nil {
-    log.Println("Connected, sending data...")
-    cmd := protocol.NewCommand("SESS", "MP")
-    n, err := io.WriteString(conn, cmd.String())
-    if err != nil || n != len(cmd.String()) {
-      log.Println("Failed to send data:", err)
+    // Start session negotiation...
+    fmt.Println("Connected, sending data...")
+    arr := []*protocol.Command{protocol.NewCommand("SESS", "MP"), protocol.NewCommand("LANG", "<>")}
+    n, err := protocol.WriteCommandsArray(conn, arr)
+    if err != nil {
+      fmt.Println("Failed to send data:", err)
     }
-    n, err = conn.Write(cmd.Bytes())
-    if err != nil || n != len(cmd.Bytes()) {
-      log.Println("Failed to send data:", err)
+    if n != len(arr) {
+      fmt.Println("Not all commands were sent!")
     }
-    log.Println("Closing connection...")
+    fmt.Println("Reading data...")
+    cmds := protocol.ReadCommands(conn)
+    for i := range cmds {
+      fmt.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
+    }
+    //n, err = protocol.WriteCommands(conn, protocol.NewCommand("VERS", "<>"),
+    //                                      protocol.NewCommand("EXT0", "off"))
+    //if err != nil {
+    //  fmt.Println("Failed to send data:", err)
+    //}
+    //if n != 2 {
+    //  fmt.Println("Not all commands were sent!")
+    //}
+    // Close connection.
+    fmt.Println("Closing connection...")
     err = conn.Close()
     if err != nil {
-      log.Println("Failed to close connection:", err)
+      fmt.Println("Failed to close connection:", err)
     }
   }
 }

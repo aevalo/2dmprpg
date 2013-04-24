@@ -6,6 +6,8 @@ import (
   "strconv"
   "bytes"
   "fmt"
+  "bufio"
+  "io/ioutil" // For ReadAll 
 )
 
 
@@ -38,35 +40,85 @@ func (c *Command) Bytes() []byte {
   return buf.Bytes()
 }
 
-func ParseCommand(conn net.Conn) *Command {
-  buf := make([]byte, 4)
-
-  n, err := conn.Read(buf)
-  if err != nil || n != 4 {
-    log.Println("Failed to read command:", err)
-    return nil
-  }
-  cmd := string(buf)
-
-  n, err = conn.Read(buf)
-  if err != nil || n != 4 {
-    log.Println("Failed to read data length:", err)
-    return nil
-  }
-  data_len, err := strconv.Atoi(string(bytes.TrimSpace(buf)))
+func ReadCommands(conn net.Conn) []*Command {
+  arr := make([]*Command, 0)
+  allbytes, err := ioutil.ReadAll(bufio.NewReader(conn))
   if err != nil {
-    log.Println("Failed to convert data length:", err)
-    return nil
+    log.Println("Failed to read commands:", err)
+    return arr
   }
+  buffer := bytes.NewBuffer(allbytes)
 
-  data_buf := make([]byte, data_len)
-  n, err = conn.Read(data_buf)
-  if err != nil || n != data_len {
-    log.Println("Failed to read data:", err)
-    return nil
+  for buffer.Len() > 0 {
+    buf := make([]byte, 4)
+
+    n, err := buffer.Read(buf)
+    if err != nil || n != 4 {
+      log.Println("Failed to read command:", err)
+      return nil
+    }
+    cmd := string(buf)
+
+    n, err = buffer.Read(buf)
+    if err != nil || n != 4 {
+      log.Println("Failed to read data length:", err)
+      return nil
+    }
+    data_len, err := strconv.Atoi(string(bytes.TrimSpace(buf)))
+    if err != nil {
+      log.Println("Failed to convert data length:", err)
+      return nil
+    }
+
+    data_buf := make([]byte, data_len)
+    n, err = buffer.Read(data_buf)
+    if err != nil || n != data_len {
+      log.Println("Failed to read data:", err)
+      return nil
+    }
+    data := string(data_buf)
+
+    arr = append(arr, &Command{Name: cmd, Data: data})
   }
-  data := string(data_buf)
-
-  return &Command{Name: cmd, Data: data}
+  return arr
 }
 
+func WriteCommandsArray(conn net.Conn, cmds []*Command) (int, error) {
+  var sent int = 0
+  for i := range cmds {
+    bytes := cmds[i].Bytes()
+    n, err := conn.Write(bytes)
+    if err == nil && n == len(bytes) {
+      sent++
+    } else {
+      if err != nil {
+        log.Println("Failed to send data:", err)
+      }
+      if n != len(bytes) {
+        log.Println("Not all data was sent!")
+      }
+      return sent, err
+    }
+  }
+  return sent, nil
+}
+
+func WriteCommands(conn net.Conn, cmds ...*Command) (int, error) {
+  var sent int = 0
+  for i := range cmds {
+    bytes := cmds[i].Bytes()
+    n, err := conn.Write(bytes)
+    if err == nil && n == len(bytes) {
+      sent++
+    } else {
+      if err != nil {
+        log.Println("Failed to send data:", err)
+      }
+      if n != len(bytes) {
+        log.Println("Not all data was sent!")
+      }
+      return sent, err
+    }
+  }
+  return sent, nil
+}
