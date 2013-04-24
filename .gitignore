@@ -15,5 +15,6 @@
 # Sublime Text project files
 *.sublime*
 
-**/bin
+bin/*
+**/bin/*
 
