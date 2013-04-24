@@ -3,36 +3,17 @@ package main
 import (
   "log"
   "net"
-  "bufio"
   "sync"
-  "regexp"
+  "2dmprpg/protocol"
 )
 
-func handleConnection(conn net.Conn, wg *sync.WaitGroup) {
-  reader := bufio.NewReader(conn)
-  str, err := reader.ReadString('\n')
-  if err != nil {
-    log.Println("Failed to read data:", err)
-  } else {
-    log.Println("Received data:", str)
-    re, err := regexp.Compile("^\\s*(\\w+)\\s*(\\d+)(\\w+)\\s*$")
-    if err != nil {
-      log.Println("Error occured while compiling regular expression:", err)
-    } else {
-      matches := re.FindStringSubmatch(str)
-      log.Println("Num of matches:", len(matches))
-      for i := 0; i < len(matches); i++ {
-        log.Println(i, ") ", matches[i])
-      }
-      log.Println(matches)
-    }
-  }
-  err = conn.Close()
-  if err != nil {
-    log.Println("Failed to close connection:", err)
-  }
-  // Decrement the counter.
-  wg.Done()
+func handleConnection(conn net.Conn) {
+  cmd := protocol.ParseCommand(conn)
+  log.Println("Command:", cmd.Name)
+  log.Println("Data:", cmd.Data)
+  cmd = protocol.ParseCommand(conn)
+  log.Println("Command:", cmd.Name)
+  log.Println("Data:", cmd.Data)
 }
 
 func main() {
@@ -43,6 +24,7 @@ func main() {
     return
   }
   if ln != nil {
+    log.Println("Waiting for incoming connections...")
     conn, err := ln.Accept()
     if err != nil {
       log.Println("Failed to accept connection:", err)
@@ -56,7 +38,15 @@ func main() {
         wg.Add(1)
 
         // Start the coroutine to handle connection
-        go handleConnection(conn, &wg)
+        go func(conn net.Conn) {
+          handleConnection(conn)
+          err = conn.Close()
+          if err != nil {
+            log.Println("Failed to close connection:", err)
+          }
+          // Decrement the WaitGroup counter
+          wg.Done()
+        }(conn)
 
         // Wait for the handler to complete
         wg.Wait()
