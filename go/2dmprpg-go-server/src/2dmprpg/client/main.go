@@ -3,12 +3,20 @@ package main
 import (
   "fmt"
   "net"
+  "os"
   "2dmprpg/protocol"
 )
 
 func main() {
   fmt.Println("Opening a connection to 127.0.0.1:8000...")
-  conn, err := net.Dial("tcp", "127.0.0.1:8000")
+      servAddr := "127.0.0.1:8000"
+    tcpAddr, err := net.ResolveTCPAddr("tcp", servAddr)
+    if err != nil {
+        println("ResolveTCPAddr failed:", err.Error())
+        os.Exit(1)
+    }
+
+  conn, err := net.DialTCP("tcp", nil, tcpAddr)
   if err != nil {
     fmt.Println("Error occured while connecting!:", err)
     return
