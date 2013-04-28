@@ -4,15 +4,16 @@ import (
   "log"
   "net"
   "sync"
+  "time"
   "2dmprpg/protocol"
 )
 
 func handleConnection(conn net.Conn) {
-  _ = protocol.ReadCommands(conn)
-  //for i := range cmds {
-  //  fmt.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
-  //}
-  //fmt.Println("Writing data...")
+  cmds := protocol.ReadCommands(conn)
+  for i := range cmds {
+    log.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
+  }
+  log.Println("Writing data...")
   _, err := protocol.WriteCommands(conn, protocol.NewCommand("SESS", "MP"), protocol.NewCommand("LANG", "<>"))
   if err != nil {
     log.Println("Failed to send data:", err)
@@ -68,6 +69,8 @@ func main() {
 
         // Wait for the handler to complete
         wg.Wait()
+
+        time.Sleep(time.Millisecond * 1000)
 
         log.Println("Done!")
       }

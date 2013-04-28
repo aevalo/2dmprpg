@@ -5,7 +5,6 @@ import (
   "net"
   "os"
   "sync"
-  "time"
   "2dmprpg/protocol"
 )
 
@@ -34,7 +33,6 @@ func main() {
       if err != nil {
         fmt.Println("Failed to send data:", err)
       }
-      time.Sleep(2000 * time.Millisecond)
       fmt.Println("Reading data...")
       cmds := protocol.ReadCommands(conn)
       for i := range cmds {
