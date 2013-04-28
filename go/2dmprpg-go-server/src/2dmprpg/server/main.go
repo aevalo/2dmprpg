@@ -4,11 +4,10 @@ import (
   "log"
   "net"
   "sync"
-  "time"
   "2dmprpg/protocol"
 )
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn *net.Conn) {
   cmds := protocol.ReadCommands(conn)
   for i := range cmds {
     log.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
@@ -50,27 +49,47 @@ func main() {
       return
     } else {
       if conn != nil {
-        var wg sync.WaitGroup
 
         log.Println("Handling connection...")
+        var wg sync.WaitGroup
         // Increment the WaitGroup counter
-        wg.Add(1)
+        //wg.Add(1)
 
         // Start the coroutine to handle connection
-        go func(conn net.Conn) {
-          handleConnection(conn)
-          err = conn.Close()
-          if err != nil {
-            log.Println("Failed to close connection:", err)
-          }
+        //go func(conn *net.Conn) {
+        //  handleConnection(conn)
           // Decrement the WaitGroup counter
-          wg.Done()
-        }(conn)
+        //  wg.Done()
+        //}(&conn)
 
-        // Wait for the handler to complete
+        log.Println("Reading data...")
+        wg.Add(1)
+        go func(conn *net.Conn) {
+          cmds := protocol.ReadCommands(conn)
+          for i := range cmds {
+            log.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
+          }
+          wg.Done()
+        }(&conn)
         wg.Wait()
 
-        time.Sleep(time.Millisecond * 1000)
+        log.Println("Writing data...")
+        wg.Add(1)
+        go func(conn *net.Conn) {
+          _, err := protocol.WriteCommands(conn, protocol.NewCommand("SESS", "MP"), protocol.NewCommand("LANG", "<>"))
+          if err != nil {
+            log.Println("Failed to send data:", err)
+          }
+          wg.Done()
+        }(&conn)
+        wg.Wait()
+
+
+        log.Println("Closing connection...")
+        err = conn.Close()
+        if err != nil {
+          log.Println("Failed to close connection:", err)
+        }
 
         log.Println("Done!")
       }

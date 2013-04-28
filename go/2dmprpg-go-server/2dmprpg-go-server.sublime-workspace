@@ -43,7 +43,7 @@
 			"file": "src/2dmprpg/client/main.go",
 			"settings":
 			{
-				"buffer_size": 600,
+				"buffer_size": 1716,
 				"line_ending": "Unix"
 			}
 		},
@@ -51,7 +51,15 @@
 			"file": "src/2dmprpg/server/main.go",
 			"settings":
 			{
-				"buffer_size": 1593,
+				"buffer_size": 2196,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/2dmprpg/protocol/command.go",
+			"settings":
+			{
+				"buffer_size": 1708,
 				"line_ending": "Unix"
 			}
 		}
@@ -118,7 +126,7 @@
 	"groups":
 	[
 		{
-			"selected": 5,
+			"selected": 6,
 			"sheets":
 			[
 				{
@@ -230,15 +238,15 @@
 					"file": "src/2dmprpg/client/main.go",
 					"settings":
 					{
-						"buffer_size": 600,
+						"buffer_size": 1716,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								369,
-								369
+								963,
+								963
 							]
 						],
 						"settings":
@@ -248,7 +256,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 45.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -258,15 +266,15 @@
 					"file": "src/2dmprpg/server/main.go",
 					"settings":
 					{
-						"buffer_size": 1593,
+						"buffer_size": 2196,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								667,
-								667
+								2137,
+								2137
 							]
 						],
 						"settings":
@@ -276,7 +284,35 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 450.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/2dmprpg/protocol/command.go",
+					"settings":
+					{
+						"buffer_size": 1708,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								381,
+								381
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 225.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

@@ -4,7 +4,6 @@ import (
   "net"
   "strconv"
   "bytes"
-  "strings"
   "fmt"
   "log"
   "bufio"
@@ -40,21 +39,21 @@ func (c *Command) Bytes() []byte {
   return buf.Bytes()
 }
 
-func ReadCommands(conn net.Conn) []*Command {
+func ReadCommands(conn *net.Conn) []*Command {
   cmds := make([]*Command, 0)
-  reader := bufio.NewReader(conn)
+  reader := bufio.NewReader(*conn)
   buf := make([]byte, 4)
-  var n int = 0
+  //var n int = 0
   var err error = nil
   for err == nil {
-    n, err = reader.Read(buf)
-    if err == nil && n == 4 {
+    _, err = reader.Read(buf)
+    if err == nil {
       cmd := NewCommand(string(buf), "")
-      n, err = reader.Read(buf)
+      _, err = reader.Read(buf)
       data_len, err := strconv.Atoi(string(bytes.TrimSpace(buf)))
       if err == nil {
         data_buf := make([]byte, data_len)
-        n, err = reader.Read(data_buf)
+        _, err = reader.Read(data_buf)
         cmd.Data = string(data_buf)
         cmds = append(cmds, cmd)
       }
@@ -65,18 +64,38 @@ func ReadCommands(conn net.Conn) []*Command {
   return cmds
 }
 
-func WriteCommandsArray(conn net.Conn, cmds []*Command) (int, error) {
-  buf := make([]string, len(cmds))
+func WriteCommandsArray(conn *net.Conn, cmds []*Command) (int, error) {
+  writer := bufio.NewWriter(*conn)
+  var all int = 0
   for i := range cmds {
-    buf = append(buf, cmds[i].String())
+    n, err := writer.WriteString(cmds[i].String())
+    all = all + n
+    if err != nil {
+      _ = writer.Flush()
+      return all, err
+    }
+    err = writer.Flush()
+    if err != nil {
+      return all, err
+    }
   }
-  return conn.Write([]byte(strings.Join(buf, "")))
+  return all, nil
 }
 
-func WriteCommands(conn net.Conn, cmds ...*Command) (int, error) {
-  buf := make([]string, len(cmds))
+func WriteCommands(conn *net.Conn, cmds ...*Command) (int, error) {
+  writer := bufio.NewWriter(*conn)
+  var all int = 0
   for i := range cmds {
-    buf = append(buf, cmds[i].String())
+    n, err := writer.WriteString(cmds[i].String())
+    all = all + n
+    if err != nil {
+      _ = writer.Flush()
+      return all, err
+    }
+    err = writer.Flush()
+    if err != nil {
+      return all, err
+    }
   }
-  return conn.Write([]byte(strings.Join(buf, "")))
+  return all, nil
 }
