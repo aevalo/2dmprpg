@@ -86,20 +86,19 @@ func ReadCommands(conn net.Conn) []*Command {
 func WriteCommandsArray(conn net.Conn, cmds []*Command) (int, error) {
   var sent int = 0
   for i := range cmds {
-    bytes := cmds[i].Bytes()
-    n, err := conn.Write(bytes)
-    if err == nil && n == len(bytes) {
+    log.Println("Writing command", cmds[i].Name)
+    _, err := conn.Write(cmds[i].Bytes())
+    log.Println(err)
+    if err == nil {
       sent++
     } else {
       if err != nil {
         log.Println("Failed to send data:", err)
       }
-      if n != len(bytes) {
-        log.Println("Not all data was sent!")
-      }
       return sent, err
     }
   }
+  log.Println("All went well!")
   return sent, nil
 }
 
@@ -107,6 +106,7 @@ func WriteCommands(conn net.Conn, cmds ...*Command) (int, error) {
   var sent int = 0
   for i := range cmds {
     bytes := cmds[i].Bytes()
+    log.Println(bytes)
     n, err := conn.Write(bytes)
     if err == nil && n == len(bytes) {
       sent++
