@@ -3,39 +3,27 @@ package main
 import (
 	"log"
 	"net"
-	//	"sync"
 	"2dmprpg/protocol"
 	"time"
 )
-/*
-func handleConnection(conn *net.Conn) {
-	cmds := protocol.ReadCommands(conn)
-	for i := range cmds {
-		log.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
+
+func handleConnection(conn *net.Conn, ch chan *protocol.Command) {
+	//TODO: add some connection/user handling here
+
+	// handle incoming command the best you can
+	quit := false
+	for !quit {
+		cmd := protocol.ReadCommand(conn)
+		log.Printf("Command: Name: %s, Data: %s\n", cmd.Name, cmd.Data)
+
+		// TODO: add some quit / auth handling here
+
+		ch <- cmd
 	}
-	log.Println("Writing data...")
-	_, err := protocol.WriteCommands(conn, protocol.NewCommand("SESS", "MP"), protocol.NewCommand("LANG", "<>"))
-	if err != nil {
-		log.Println("Failed to send data:", err)
-	}
-*/
-//n, err := protocol.WriteCommands(conn,  protocol.NewCommand("VERS", "<>"),
-//                                        protocol.NewCommand("LANG", "<>"),
-//                                       protocol.NewCommand("EXT0", "test"),
-//                                       protocol.NewCommand("PALT", "file://tmp/mypalette.pal"))
-//if err != nil {
-//  fmt.Println("Failed to send data:", err)
-//}
-//if n != 4 {
-//  fmt.Println("Not all commands were sent!")
-//}
-//cmds = protocol.ReadCommands(conn)
-//for i := range cmds {
-//  fmt.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
-//}
-//}
+}
 
 func main() {
+	// start listening tcp connections
 	log.Println("Listening 0.0.0.0:8000 for connections...")
 	ln, err := net.Listen("tcp", "0.0.0.0:8000")
 	if err != nil {
@@ -43,6 +31,7 @@ func main() {
 		return
 	}
 	if ln != nil {
+		// waiting for connection
 		log.Println("Waiting for incoming connections...")
 		conn, err := ln.Accept()
 		if err != nil {
@@ -50,47 +39,23 @@ func main() {
 			return
 		} else {
 			if conn != nil {
-
+				// Start message handling.
 				log.Println("Handling connection...")
-				//				var wg sync.WaitGroup
-				// Increment the WaitGroup counter
-				//wg.Add(1)
+				go handleConnection(&conn, make(chan *protocol.Command))
 
-				// Start the coroutine to handle connection
-				//go func(conn *net.Conn) {
-				//  handleConnection(conn)
-				// Decrement the WaitGroup counter
-				//  wg.Done()
-				//}(&conn)
-
-				log.Println("Reading data...")
-				//				wg.Add(1)
-				//				go func(conn *net.Conn) {
-				//			ch := make(chan *protocol.Command, 100)
-				cmds := protocol.ReadCommands(&conn)
-				//				cmd := <-ch				
-				//				log.Printf("Command: Name: %s, Data: %s\n", cmd.Name, cmd.Data)
-				for i := range cmds {
-					log.Printf("Command #%d: Name: %s, Data: %s\n", i, cmds[i].Name, cmds[i].Data)
-				}
-				log.Printf("Reading ended")
-				//				wg.Done()
-				//				}(&conn)
-				//				wg.Wait()
-
+				// Sleep for testing purposes
+				time.Sleep(time.Second * 2)
 				log.Println("Writing data...")
-				//					wg.Add(1)
-				//					go func(conn *net.Conn) {
+
+				// Send commands to client for testing purposes
 				_, err := protocol.WriteCommands(&conn,
 					protocol.NewCommand("SESS", "MP"),
 					protocol.NewCommand("LANG", "<>"))
 				if err != nil {
 					log.Println("Failed to send data:", err)
 				}
-				//						wg.Done()
-				//					}(&conn)
-				//					wg.Wait()
 
+				// close tcp connection
 				log.Println("Closing connection...")
 				err = conn.Close()
 				if err != nil {

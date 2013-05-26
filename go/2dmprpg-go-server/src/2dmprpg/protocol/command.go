@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"bufio"
-	"time"
 )
 
 // Package initialization function
@@ -39,42 +38,40 @@ func (c *Command) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func ReadCommands(conn *net.Conn) []*Command {
-	cmds := make([]*Command, 0)
+/*
+ Reads command from tcp buffer. Blocking function.
+*/
+func ReadCommand(conn *net.Conn) *Command {
 	reader := bufio.NewReader(*conn)
 	buf := make([]byte, 4)
 	var err error = nil
-	for err == nil {
-		tim := time.Time.Now()
-		tim.Add(time.Duration(1) * time.Second)
-		conn.SetDeadline(tim)
-		log.Printf("start reading")
+	_, err = reader.Read(buf)
+	if err == nil {
+		log.Printf("Read length %v\n", string(buf))
+		data_len, err := strconv.Atoi(string(bytes.TrimSpace(buf)))
 		_, err = reader.Read(buf)
+		cmd := NewCommand(string(buf), "")
+		log.Printf("Read commnd %v\n", string(buf))
 		if err == nil {
-			log.Printf("Read length %v\n", string(buf))
-			data_len, err := strconv.Atoi(string(bytes.TrimSpace(buf)))
-			_, err = reader.Read(buf)
-			cmd := NewCommand(string(buf), "")
-			log.Printf("Read commnd %v\n", string(buf))
-			if err == nil {
-				data_buf := make([]byte, data_len)
-				_, err = reader.Read(data_buf)
-				log.Printf("Read data %v\n", string(data_buf))
-				cmd.Data = string(data_buf)
-				cmds = append(cmds, cmd)
-			} else {
-				log.Printf("Error occurred while parsing data: %v\n", err)
-			}
+			data_buf := make([]byte, data_len)
+			_, err = reader.Read(data_buf)
+			log.Printf("Read data %v\n", string(data_buf))
+			cmd.Data = string(data_buf)
+			return cmd
+		} else {
+			log.Printf("Error occurred while parsing data: %v\n", err)
 		}
 	}
-	return cmds
+	return nil
 }
 
+/*
+ Writes one or more commands to tcp buffer. Non-blocking.
+*/
 func WriteCommands(conn *net.Conn, cmds ...*Command) (int, error) {
 	writer := bufio.NewWriter(*conn)
 	var all int = 0
 	for i := range cmds {
-		log.Printf("start writing")
 		n, err := writer.WriteString(cmds[i].String())
 		all = all + n
 		if err != nil {
