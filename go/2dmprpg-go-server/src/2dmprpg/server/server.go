@@ -26,7 +26,7 @@ func (c *Server) HostString() string {
 }
 
 type NetUser struct {
-	Id            string
+	Id            int
 	Connection    *net.Conn
 	Authenticated bool
 	Alive         bool
@@ -34,7 +34,7 @@ type NetUser struct {
 }
 
 func (c *NetUser) String() string {
-	return fmt.Sprintf("Id: %s, Addr: %s, Authed: %v", c.Id, c.Connection.RemoteAddr().String(), c.Authenticated)
+	return fmt.Sprintf("Id: %s, Addr: %s, Authed: %v", c.Id, c.Connection, c.Authenticated)
 }
 
 func NewNetUser(conn *net.Conn) *NetUser {
@@ -43,7 +43,7 @@ func NewNetUser(conn *net.Conn) *NetUser {
 	user.Authenticated = false
 	user.Connection = conn
 	user.Channel = make(chan *protocol.Command)
-	user.Id = conn.RemoteAddr().String() //change this to proper id
+	user.Id = len(server.Users) + 1 //change this to proper id
 	return user
 }
 
@@ -63,11 +63,13 @@ func HandleConnection(conn *net.Conn) {
 	}
 
 	// close tcp connection
-	log.Println("Closing connection", conn.RemoteAddr().String())
-	err = conn.Close()
+	log.Println("Closing connection", user.Id)
+	err := conn.Close()
 	if err != nil {
 		log.Println("Failed to close connection:", err)
 	}
+
+	//TODO: remove from list
 }
 
 func Start(ip, port string) {
@@ -84,7 +86,7 @@ func Start(ip, port string) {
 	}
 	if ln != nil {
 		log.Println("Waiting for incoming connections...")
-		go func(ln *net.Listener) {
+		go func() {
 			// waiting for connection
 			conn, err := ln.Accept()
 			if err != nil {
@@ -92,11 +94,11 @@ func Start(ip, port string) {
 				return
 			} else {
 				if conn != nil {
-					log.Println("Handling connection: ", conn.RemoteAddr().String())
+					log.Println("Handling connection... ")
 					go handleConnection(&conn)
 				}
 			}
-		}(&ln)
+		}()
 		log.Println("Server started")
 	}
 }
@@ -107,6 +109,6 @@ func Close() {
 		server.Users[i].Alive = false
 		server.Users[i].Connection.Close()
 		close(server.Users[i].Channel)
-		server.Users.Remove(i)
+		//		server.Users.Remove(i)
 	}
 }
