@@ -16,18 +16,13 @@ func init() {
 var server *Server
 
 type Server struct {
-	Ip    string
-	Port  string
+	Addr  *net.TCPAddr
 	Users []*NetUser // TODO: consider a map here
-}
-
-func (c *Server) HostString() string {
-	return fmt.Sprintf("%s:%s", c.Ip, c.Port)
 }
 
 type NetUser struct {
 	Id            int
-	Connection    *net.Conn
+	Connection    *net.TCPConn
 	Authenticated bool
 	Alive         bool
 	Channel       chan *protocol.Command
@@ -37,7 +32,7 @@ func (c *NetUser) String() string {
 	return fmt.Sprintf("Id: %s, Addr: %s, Authed: %v", c.Id, c.Connection, c.Authenticated)
 }
 
-func NewNetUser(conn *net.Conn) *NetUser {
+func NewNetUser(conn *net.TCPConn) *NetUser {
 	user := new(NetUser)
 	user.Alive = true
 	user.Authenticated = false
@@ -47,10 +42,10 @@ func NewNetUser(conn *net.Conn) *NetUser {
 	return user
 }
 
-func HandleConnection(conn *net.Conn) {
+func HandleConnection(conn *net.TCPConn) {
 	//create user
 	user := NewNetUser(conn)
-	append(server.Users, user)
+	server.Users = append(server.Users, user)
 
 	// handle incoming command the best you can
 	for user.Alive {
@@ -72,14 +67,15 @@ func HandleConnection(conn *net.Conn) {
 	//TODO: remove from list
 }
 
-func Start(ip, port string) {
+func Start(ip string, port int) {
 	// create server object
 	server = new(Server)
-	server.Ip = ip
-	server.Port = port
+	server.Addr = new(net.TCPAddr)
+	server.Addr.IP = net.ParseIP(ip)
+	server.Addr.Port = port
 
 	// start listening tcp connections
-	ln, err := net.Listen("tcp", server.HostString())
+	ln, err := net.ListenTCP("tcp", server.Addr)
 	if err != nil {
 		log.Println("Error occured while listening for connections:", err)
 		return
@@ -88,14 +84,14 @@ func Start(ip, port string) {
 		log.Println("Waiting for incoming connections...")
 		go func() {
 			// waiting for connection
-			conn, err := ln.Accept()
+			conn, err := ln.AcceptTCP()
 			if err != nil {
 				log.Println("Failed to accept connection:", err)
 				return
 			} else {
 				if conn != nil {
 					log.Println("Handling connection... ")
-					go handleConnection(&conn)
+					go HandleConnection(conn)
 				}
 			}
 		}()
