@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net"
-	"2dmprpg/protocol"
+	//	"protocol"
 	"fmt"
 	//	"time"
 )
@@ -25,7 +25,7 @@ type NetUser struct {
 	Connection    *net.TCPConn
 	Authenticated bool
 	Alive         bool
-	Channel       chan *protocol.Command
+	Channel       chan *Command
 }
 
 func (c *NetUser) String() string {
@@ -37,7 +37,7 @@ func NewNetUser(conn *net.TCPConn) *NetUser {
 	user.Alive = true
 	user.Authenticated = false
 	user.Connection = conn
-	user.Channel = make(chan *protocol.Command)
+	user.Channel = make(chan *Command)
 	user.Id = len(server.Users) + 1 //change this to proper id
 	return user
 }
@@ -49,7 +49,7 @@ func HandleConnection(conn *net.TCPConn) {
 
 	// handle incoming command the best you can
 	for user.Alive {
-		cmd := protocol.ReadCommand(conn)
+		cmd := ReadCommand(conn)
 		log.Printf("%s: Name: %s, Data: %s\n", user.Id, cmd.Name, cmd.Data)
 
 		// TODO: add some quit / auth handling here
