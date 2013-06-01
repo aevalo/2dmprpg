@@ -10,7 +10,7 @@ import (
 func main() {
 	log.Printf("Start application")
 
-	server.Start("0.0.0.0", 8000)
+	server.Start("localhost", 8000)
 
 	// catch SIGTERM
 	c := make(chan os.Signal, 1)

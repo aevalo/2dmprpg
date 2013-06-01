@@ -42,6 +42,13 @@ func NewNetUser(conn *net.TCPConn) *NetUser {
 	return user
 }
 
+func NewTCPAddr(ip string, port int) *net.TCPAddr {
+	addr := new(net.TCPAddr)
+	addr.IP = net.ParseIP(ip)
+	addr.Port = port
+	return addr
+}
+
 func HandleConnection(conn *net.TCPConn) {
 	//create user
 	user := NewNetUser(conn)
@@ -70,9 +77,7 @@ func HandleConnection(conn *net.TCPConn) {
 func Start(ip string, port int) {
 	// create server object
 	server = new(Server)
-	server.Addr = new(net.TCPAddr)
-	server.Addr.IP = net.ParseIP(ip)
-	server.Addr.Port = port
+	server.Addr = NewTCPAddr(ip, port)
 
 	// start listening tcp connections
 	ln, err := net.ListenTCP("tcp", server.Addr)
