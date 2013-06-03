@@ -5,6 +5,7 @@ import (
 	"2dmprpg/server"
 	"os"
 	"os/signal"
+	"time"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 
 	// main loop
 	for {
+		time.Sleep(3 * time.Second)
 	}
 
 }

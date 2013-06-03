@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	//	"bufio"
 )
 
 // Package initialization function
@@ -42,7 +41,6 @@ func (c *Command) Bytes() []byte {
  Reads command from tcp buffer. Blocking function.
 */
 func ReadCommand(conn *net.TCPConn) *Command {
-	//	reader := bufio.NewReader(*conn)
 	buf := make([]byte, 4)
 	var err error = nil
 	_, err = conn.Read(buf)
@@ -75,10 +73,8 @@ func WriteCommands(conn *net.TCPConn, cmds ...*Command) (int, error) {
 		n, err := conn.Write(cmds[i].Bytes())
 		all = all + n
 		if err != nil {
-			//			_ = conn.Flush()
 			return all, err
 		}
-		//		err = conn.Flush()
 		if err != nil {
 			return all, err
 		}

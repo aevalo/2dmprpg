@@ -57,7 +57,7 @@ func HandleConnection(conn *net.TCPConn) {
 	// handle incoming command the best you can
 	for user.Alive {
 		cmd := ReadCommand(conn)
-		log.Printf("%s: Name: %s, Data: %s\n", user.Id, cmd.Name, cmd.Data)
+		log.Printf("%d: Name: %s, Data: %s\n", user.Id, cmd.Name, cmd.Data)
 
 		// TODO: add some quit / auth handling here
 
@@ -86,9 +86,9 @@ func Start(ip string, port int) {
 		return
 	}
 	if ln != nil {
-		log.Println("Waiting for incoming connections...")
 		go func() {
 			// waiting for connection
+			log.Println("Waiting for incoming connections...")
 			conn, err := ln.AcceptTCP()
 			if err != nil {
 				log.Println("Failed to accept connection:", err)
@@ -110,6 +110,7 @@ func Close() {
 		server.Users[i].Alive = false
 		server.Users[i].Connection.Close()
 		close(server.Users[i].Channel)
-		//		server.Users.Remove(i)
 	}
+	// TODO: add users removal from list
+	log.Println("Server closed")
 }

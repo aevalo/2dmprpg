@@ -5,8 +5,8 @@ import (
 	"net"
 	"os"
 	"2dmprpg/server"
-	"bufio"
 	"strconv"
+	"strings"
 )
 
 func HandleConnection(conn *net.TCPConn, ch chan *server.Command) {
@@ -45,12 +45,20 @@ func main() {
 
 		go HandleConnection(conn, ch)
 
-		// write data
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			input := scanner.Text()
-			fmt.Println(input)
-			Write(input, conn)
+		var command string
+		var data string
+
+		for {
+			command = ""
+			data = ""
+			fmt.Print(">:")
+			_, err := fmt.Scanf("%s%s", &command, &data)
+			if err != nil {
+				fmt.Println("Failed to read Stdin: ", err)
+			} else {
+				fmt.Println(command, data)
+				server.WriteCommands(conn, server.NewCommand(strings.TrimSpace(command), strings.TrimSpace(data)))
+			}
 		}
 
 		// close sockets
